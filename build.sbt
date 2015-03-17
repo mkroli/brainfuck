@@ -1,3 +1,6 @@
+import sbtrelease._
+import ReleaseStateTransformations._
+
 name := "brainfuck"
 
 organization := "com.github.mkroli"
@@ -20,3 +23,7 @@ buildInfoKeys := Seq[BuildInfoKey](name, version)
 buildInfoPackage := "com.github.mkroli.brainfuck.build"
 
 releaseSettings
+
+ReleaseKeys.releaseProcess <<= ReleaseKeys.releaseProcess { r =>
+  r filterNot Set(publishArtifacts, pushChanges)  
+}
