@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Michael Krolikowski
+ * Copyright 2013-2015 Michael Krolikowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import scala.io.Source
 
 import com.github.mkroli.brainfuck.build.BuildInfo
 
-import scopt.immutable.OptionParser
+import scopt.OptionParser
 
 object Brainfuck extends App {
   object Action extends Enumeration {
@@ -31,27 +31,25 @@ object Brainfuck extends App {
     debug: Boolean = false,
     filename: String = "")
 
-  val parser = new OptionParser[Config](BuildInfo.name, BuildInfo.version) {
-    def options = Seq(
-      help("h", "help", "Display help message"),
-      flag("b", "run-brainfuck", "Run Brainfuck Code") { c =>
-        c.copy(actions = Action.RunBrainfuck :: c.actions)
-      },
-      flag("o", "run-ook", "Run Ook! Code") { c =>
-        c.copy(actions = Action.RunOok :: c.actions)
-      },
-      flag("B", "convert-brainfuck", "Convert Brainfuck Code") { c =>
-        c.copy(actions = Action.ConvertBrainfuck :: c.actions)
-      },
-      flag("O", "convert-ook", "Convert Ook! Code") { c =>
-        c.copy(actions = Action.ConvertOok :: c.actions)
-      },
-      flag("d", "debug", "Enable debugging output") { c =>
-        c.copy(debug = true)
-      },
-      arg("file", "The file to process") { (filename, c) =>
-        c.copy(filename = filename)
-      })
+  val parser = new OptionParser[Config](BuildInfo.name) {
+    head(BuildInfo.name, BuildInfo.version)
+
+    help("help") abbr "h" text "Display help message"
+
+    private def addAction(action: Action.Value)(u: Unit, config: Config) =
+      config.copy(actions = action :: config.actions)
+
+    opt[Unit]('b', "run-brainfuck") text "Run Brainfuck Code" action addAction(Action.RunBrainfuck)
+    opt[Unit]('o', "run-ook") text "Run Ook! Code" action addAction(Action.RunOok)
+    opt[Unit]('B', "convert-brainfuck") text "Convert Brainfuck Code" action addAction(Action.ConvertBrainfuck)
+    opt[Unit]('O', "convert-ook") text "Convert Ook! Code" action addAction(Action.ConvertOok)
+    opt[Unit]('d', "debug") text "Enable debugging output" action { (_, c) =>
+      c.copy(debug = true)
+    }
+
+    arg[String]("<file>") text "The file to process" action { (f, c) =>
+      c.copy(filename = f)
+    }
   }
 
   parser.parse(args, Config()).map { config =>
@@ -64,9 +62,9 @@ object Brainfuck extends App {
       case Action.RunOok =>
         BrainfuckMachine.ook(source, config.debug)
       case Action.ConvertBrainfuck =>
-        println(Ook.toOok(sourceChars), config.debug)
+        println(Ook.toOok(sourceChars))
       case Action.ConvertOok =>
-        println(Ook.fromOok(source), config.debug)
+        println(Ook.fromOok(source))
     }
   }
 }
