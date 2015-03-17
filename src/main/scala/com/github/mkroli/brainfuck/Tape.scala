@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Michael Krolikowski
+ * Copyright 2013-2015 Michael Krolikowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,10 @@ class Tape private (i: Int, t: Map[Int, Int]) {
 
   def <(c: Int) = new Tape(i - c, t)
 
-  private def adjustMap[A, B](m: Map[A, B], key: A)(f: B => B) =
-    m + (key -> f(m(key)))
+  private def adjustMap(m: Map[Int, Int], key: Int)(f: Int => Int) = f(m(key)) match {
+    case 0 => m - key
+    case n => m + (key -> n)
+  }
 
   def +(c: Int) = new Tape(i, adjustMap(t, i)(_ + c))
 
