@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Michael Krolikowski
+ * Copyright 2013-2015 Michael Krolikowski
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,15 @@
 package com.github.mkroli.brainfuck
 
 import scala.annotation.tailrec
-import scala.collection.immutable.Stack
 
 class BrainfuckMachine private (
   instructions: List[Char],
   debug: Boolean,
   instructionPointer: Int,
-  markers: Stack[Int],
+  markers: List[Int],
   tape: Tape) {
   def this(instructions: List[Char], debug: Boolean) =
-    this(instructions, debug, 0, new Stack(), new Tape)
+    this(instructions, debug, 0, Nil, new Tape)
 
   def next = instructions.lift(instructionPointer) match {
     case Some(i) => Some(i match {
@@ -53,8 +52,7 @@ class BrainfuckMachine private (
           new BrainfuckMachine(instructions, debug, instructionPointer + 1, instructionPointer +: markers, tape)
       }
       case ']' => {
-        val (ptr, m) = markers.pop2
-        new BrainfuckMachine(instructions, debug, ptr, m, tape)
+        new BrainfuckMachine(instructions, debug, markers.head, markers.tail, tape)
       }
       case '#' if debug => {
         println(tape.debugString)
